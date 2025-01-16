@@ -28,24 +28,26 @@ def import_model(model_name, tasks, train=True, eval=True):
     
     if train:
         model_path = os.path.join(FILE_DIR, 'checkpoints', model_name, 'config')
+        vocab_path = model_path
     else:
         model_path = os.path.join(FILE_DIR, 'checkpoints', model_name, f'saved_model_{tasks}')
+        vocab_path = os.path.join(FILE_DIR, 'checkpoints', model_name, 'config')
         
     if model_name == 'bert':
         model = BertForSequenceClassification.from_pretrained(model_path, num_labels=2)
-        tokenizer = BertTokenizer.from_pretrained(model_path)
+        tokenizer = BertTokenizer.from_pretrained(vocab_path)
         config = BertConfig.from_pretrained(model_path)
     
     elif model_name == 't5':
         config = T5Config.from_pretrained(model_path)
         config.num_labels = 2
-        tokenizer = T5Tokenizer.from_pretrained(model_path, legacy=False)
+        tokenizer = T5Tokenizer.from_pretrained(vocab_path, legacy=False)
         model = T5ForSequenceClassification.from_pretrained(model_path, config=config)
     
     elif model_name == 'gpt2':
         config = GPT2Config.from_pretrained(model_path)
         config.num_labels = 2
-        tokenizer = GPT2Tokenizer.from_pretrained(model_path)
+        tokenizer = GPT2Tokenizer.from_pretrained(vocab_path)
         tokenizer.add_special_tokens({'pad_token': '[PAD]'})
         tokenizer.pad_token_id = tokenizer.get_vocab()[tokenizer.pad_token]
         config.pad_token_id = tokenizer.pad_token_id
@@ -55,14 +57,14 @@ def import_model(model_name, tasks, train=True, eval=True):
     elif model_name == 'electra':
         config = ElectraConfig.from_pretrained(model_path)
         config.num_labels = 2
-        tokenizer = ElectraTokenizer.from_pretrained(model_path, legacy=False)
+        tokenizer = ElectraTokenizer.from_pretrained(vocab_path, legacy=False)
         model = ElectraForSequenceClassification.from_pretrained(model_path, config=config)
     
     elif model_name == 'tiny-bert':
         max_length = 512
         config = BertConfig.from_pretrained(model_path)
         config.num_labels = 2
-        tokenizer = BertTokenizer.from_pretrained(model_path, model_max_length=max_length)
+        tokenizer = BertTokenizer.from_pretrained(vocab_path, model_max_length=max_length)
         model = BertForSequenceClassification.from_pretrained(model_path, config=config)
         
     num_params = sum(p.numel() for p in model.parameters())
